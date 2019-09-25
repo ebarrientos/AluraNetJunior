@@ -14,6 +14,13 @@ namespace CasaDoCodigo.Models
         public int Id { get; protected set; }
     }
 
+    public class Categoria : BaseModel
+    {
+
+        [Required]
+        public string Nome { get; private set; }
+    }
+
     public class Produto : BaseModel
     {
         public Produto()
@@ -77,7 +84,7 @@ namespace CasaDoCodigo.Models
             this.UF = novoCadastro.UF;
         }
     }
-
+       
     [DataContract]
     public class ItemPedido : BaseModel
     {   
