@@ -1,0 +1,101 @@
+﻿@model CategoriaViewModel
+@{
+    ViewData["Title"] = "BuscaDeProdutos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    @if (Model.Itens.Any() == false)
+    {
+        <div class="row" style="padding-top:20px">
+            <div class="col-md-12">
+                <div class="alert alert-warning">
+                    <strong>Atenção!</strong> O filtro <b>@Model.Search</b> não trouxe nenhum resultado.
+                </div>
+            </div>
+        </div>
+    }
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Buscar produtos</h2>
+            <div id="custom-search-input">
+                <div class="input-group col-md-12">
+                    <form asp-action="buscadeprodutos" method="get">
+                        <input type="text" name="pesquisa" class="form-control input-lg" placeholder="categoria ou produto" id="Pesquisa" value="" asp-for="Search" />
+                        <span class="input-group-btn">
+                            <button class="btn btn-info btn-lg" type="submit">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </span>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@foreach (var item in Model.Itens)
+{
+    if (item.Produtos.Any() == false)
+    {
+        continue;
+    }
+
+    /**Paginação carousel*/
+    int tamanhoPagina = 4;
+    int pagina = 0;
+
+    <h3>@item.Nome</h3>
+
+    <div id="my-carousel-@item.Id" class="carousel slide" data-ride="carousel">
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+
+            @while (true)
+            {
+                var produtosPorPagina = item.Produtos.Skip(pagina * tamanhoPagina).Take(tamanhoPagina);
+                if (produtosPorPagina.Any() == false)
+                {
+                    break;
+                }
+                <div class="item @(pagina == 0 ? "active" : string.Empty)">
+                    <div class="row">
+                        @foreach (var produto in produtosPorPagina)
+                        {
+                            <div class="col-md-3 col-sm-3 col-lg-3">
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        <img class="img-produto-carrossel" src="/images/produtos/large_@(produto.Codigo).jpg" />
+                                    </div>
+                                    <div class="panel-footer produto-footer">
+                                        <div class="produto-nome">@produto.Nome</div>
+                                        <div><h4><strong>@produto.Preco.ToString("C2")</strong></h4></div>
+                                        <div class="text-center">
+                                            <a class="btn btn-success">Adicionar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                pagina++;
+            }
+        </div>
+        <!-- Controls -->
+        <a class="left carousel-control" href="#my-carousel-@item.Id" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Voltar</span>
+        </a>
+        <a class="right carousel-control" href="#my-carousel-@item.Id" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Próximo</span>
+        </a>
+    </div>
+}
+
+
+
+
