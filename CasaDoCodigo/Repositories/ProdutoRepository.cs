@@ -9,14 +9,20 @@ namespace CasaDoCodigo.Repositories
 {
     public class ProdutoRepository : BaseRepository<Produto>, IProdutoRepository
     {
-        public ProdutoRepository(ApplicationContext contexto) : base(contexto)
+        private ICategoriaRepository _categoriaRepository { get; }
+        public ProdutoRepository(ApplicationContext contexto, ICategoriaRepository categoriaRepository) : base(contexto)
         {
+            _categoriaRepository = categoriaRepository;
         }
 
-        public IList<Produto> GetProdutos()
+
+        public async Task<IList<Produto>> GetProdutos()
         {
-            return dbSet.ToList();
+            return await dbSet
+                .Include(produto => produto.Categoria)
+                .ToListAsync();
         }
+
 
         public async Task SaveProdutos(List<Livro> livros)
         {
@@ -24,10 +30,32 @@ namespace CasaDoCodigo.Repositories
             {
                 if (!dbSet.Where(p => p.Codigo == livro.Codigo).Any())
                 {
-                    dbSet.Add(new Produto(livro.Codigo, livro.Nome, livro.Preco));
+                    var categoria = await _categoriaRepository.SaveCategoria(livro.Categoria);
+
+                    dbSet.Add(new Produto(
+                        livro.Codigo,
+                        livro.Nome,
+                        categoria,
+                        livro.Preco));
                 }
             }
             await contexto.SaveChangesAsync();
+        }
+        
+        public async Task<IList<Produto>> GetProdutos(string searchNomeProdutoCategoria)
+        {
+            searchNomeProdutoCategoria = searchNomeProdutoCategoria?.ToUpper();
+
+            if (string.IsNullOrWhiteSpace(searchNomeProdutoCategoria))
+                return await GetProdutos();
+
+
+            return await dbSet
+                .Include(produto => produto.Categoria)
+                .Where(produto =>
+                    produto.Nome.ToUpper().Contains(searchNomeProdutoCategoria) ||
+                    produto.Categoria.Nome.ToUpper().Contains(searchNomeProdutoCategoria))
+                .ToListAsync();
         }
     }
 
